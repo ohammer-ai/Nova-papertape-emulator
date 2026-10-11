@@ -89,7 +89,7 @@ I can make detailed wiring instructions if anyone is interested.
 
 20 ma current loop issue:
 
-The 
+The SYNC signal from the emulator to the 4013 controller is 20 mA current loop in the original 4013. If you have that, then you must mount the optocoupler and capacitor on the BACK side of the PCB. My Nova did not have installed the current loop circuitry on the Basic I/O card, and so I just connected directly as TTL. If you have the same, you don't need the optocoupler and capacitor, but must place a bypasss jumper from pin 3 to pin 6 where the optocoupler is not.
 
 How to use:
 

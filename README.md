@@ -2,6 +2,8 @@ Hi-speed papertape reader and punch emulator for Data General Nova
 
 This Arduino-based unit emulates the "high-speed" papertape reader and punch for Nova computers. It connects to the 4011 and 4013 controllers on the Basic I/O card in the Nova.
 
+--------------
+
 Parts list:
 
 PCB (gerber file)
@@ -50,6 +52,8 @@ Optional: HCPL-4100-000E Broadcom logic output optocoupler. Mouser 630-HCPL-4100
 
 Optional: 1 nF ceramic capacitor
 
+--------------------
+
 Vague building instructions:
 
 Solder header strips to PCB on the TOP side (with text like SDA, SCL, 5V, GND, L/R etc).
@@ -80,16 +84,22 @@ Glue the front panel to the bezel.
 
 Fasten PCB to bezel with the standoffs and screws
 
+---------------------
+
 Nova wiring:
 
-Make two ribbon cables, e.g. 1 m long, with 20-pin female IDC connectors at one end. These connectors plug into the emulator. Make sure where pin 1 is (as marked on the PCB).
+Make two ribbon cables, e.g. 1 m long, with 20-pin female IDC connectors at one end. These connectors plug into the emulator. Note where pin 1 is (as marked on the PCB).
 
-At the NOVA end, there now some very tedious wiring to do. I used 15-pin, 3-row male D-sub connectors that plug into female D-subs on the NOVA, and then via ribbon cables to 20-pin female IDC connectors that go into male headers at the bottom of the NOVA backplane.
+At the NOVA end, there is now some very tedious wiring to do. I used 15-pin, 3-row male D-sub connectors that plug into female D-subs on the NOVA, and then via ribbon cables to 20-pin female IDC connectors that go into male headers at the bottom of the NOVA backplane.
 I can make detailed wiring instructions if anyone is interested.
+
+----------------------
 
 20 ma current loop issue:
 
 The SYNC signal from the emulator to the 4013 controller is 20 mA current loop in the original 4013. If you have that, then you must mount the optocoupler and capacitor on the BACK side of the PCB. My Nova did not have installed the current loop circuitry on the Basic I/O card, and so I just connected directly as TTL. If you have the same, you don't need the optocoupler and capacitor, but must place a bypasss jumper from pin 3 to pin 6 where the optocoupler is not.
+
+-------------------
 
 How to use:
 
@@ -101,6 +111,10 @@ Read a tape: Make sure the Read/Punch switch is in the Read position and the Loa
 
 Punch a tape: Make sure the Read/Punch switch is in the Punch position and the Load/Run switch is in the Load position. Select tape number with the rotary switch. Switch to Run, and initiate the punch from the Nova. The display will show bytes transferred. When finished, switch back to Load.
 
+----------------
+
 There is NO WARNING if you overwrite an existing tape.
+
 In Extended BASIC, you can punch the program in binary with the command SAVE "$PTR". Load with LOAD "$PTR".
+
 The punch is intentionally slow to mimic the old punch. In a future version I might add a "turbo" switch.

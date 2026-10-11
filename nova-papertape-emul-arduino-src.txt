@@ -1,0 +1,245 @@
+#include <Adafruit_LEDBackpack.h>
+#include <Adafruit_Crickit.h>
+#include "Adafruit_seesaw.h"
+
+#define SEESAW_ADDR          0x36
+
+// Defines for SD card
+// Modify CS_PIN for your chip select pin.
+#define CS_PIN SS
+
+#include "SdFat.h"
+// Setting ENABLE_DEDICATED_SPI to zero saves over 200 more bytes.
+#if ENABLE_DEDICATED_SPI
+#warning \
+    "Set ENABLE_DEDICATED_SPI zero in SdFat/src/SdFatConfig.h for minimum size"
+#endif  // ENABLE_DEDICATED_SPI
+// Ensure FAT16/FAT32 only.
+SdFat32 SD;
+FatFile file;
+
+Adafruit_seesaw ss;
+Adafruit_7segment matrix = Adafruit_7segment();
+
+int32_t encoder_position;
+int state; // 0=Load, 1=Read, 2=Punch
+
+void LEDerr(int errno) {
+  matrix.print(errno);
+  matrix.writeDigitRaw(0, B01111001); // E (ADEFG)
+  matrix.writeDigitRaw(1, B01010000); // r
+  matrix.writeDigitRaw(3, B01010000); // r
+  matrix.writeDisplay();
+  matrix.blinkRate(2);
+  delay(5000);
+  matrix.blinkRate(0);
+}
+
+void displayCnt(int32_t cnt) {
+  if (cnt>9999) {
+    matrix.printFloat(cnt/1000.0, 2); // Show kB (1000 B)
+  } else {
+    matrix.print((int)cnt);
+    if (cnt<1000) matrix.writeDigitNum(0,0,false);
+    if (cnt<100) matrix.writeDigitNum(1,0,false);
+    if (cnt<10) matrix.writeDigitNum(3,0,false);
+  }
+  matrix.writeDisplay();
+}
+
+void setup() {
+  int n;
+  char buf[4];
+  
+  // Setup rotary encoder
+
+  Serial.begin(115200);
+  while (!Serial) delay(10);
+  
+  if (! ss.begin(SEESAW_ADDR)) {
+    Serial.println("Couldn't find seesaw on default address");
+    while(1) delay(10);
+  }
+
+  uint32_t version = ((ss.getVersion() >> 16) & 0xFFFF);
+  if (version  != 4991){
+    Serial.print("Wrong firmware loaded? ");
+    Serial.println(version);
+    while(1) delay(10);
+  }  
+
+  // Setup LED display
+  matrix.begin(0x70); // Initialize the display with its I2C address
+  matrix.setBrightness(5); // max 15 (doesn't seem to do anything?)
+
+  pinMode(49, INPUT_PULLUP); // Pin PL0 = Load(0)/Run(1) switch
+  pinMode(48, INPUT_PULLUP); // Pin PL1 = Read(0)/Punch(1) switch
+
+
+  // Init Papertape reader interface
+  pinMode(45, INPUT_PULLUP); // Pin PL4 = STOP
+  pinMode(46, OUTPUT); // Pin PL3 = not_RD_RDY
+  pinMode(47, OUTPUT); // Pin PL2 = SPKT
+
+  // Set digital pins 0 through 7 on PORT A as OUTPUTS
+  DDRA = 0xFF;
+
+  digitalWrite(47, LOW); // Make sure SPKT is low
+  digitalWrite(46, LOW); // Assert not_RD_RDY (maybe change when in Punch mode?)
+
+
+  // Init Papertape punch interface
+  pinMode(43, INPUT_PULLUP); // Pin PL6 = FEED HOLE (active low open-collector)
+  pinMode(44, OUTPUT); // Pin PL5 = SYNC (20 mA current loop or not)
+
+  // Set digital pins 0 through 7 on PORT C as INPUTS (also this is default)
+  DDRC = 0x00;
+  // Enable pullups (4013 interface is open-collector)
+  PORTC = 0xFF;
+
+  digitalWrite(44, LOW); // Make sure SYNC is low
+  
+
+  // set starting position for rotary encoder
+  encoder_position = 0;
+  ss.setEncoderPosition(encoder_position);
+
+  // Init SD reader
+  if (!SD.begin(CS_PIN)) { // Init SD reader
+    LEDerr(1); // Error 1, Could not open SD card
+  }
+
+  // Determine switch state at bootup
+  if (digitalRead(49)==0) state=0; // Load
+  else {
+    if (digitalRead(48)==0) state=1; else state=2; // Read/Punch
+  }
+}
+
+void loop() {
+  int32_t new_position, cnt, n;
+  char fname[8];
+  byte buf[2];
+  String fnamest;
+
+  if (state==0) { // Load
+    if (digitalRead(49)==1) { // Switched to Run
+      if (digitalRead(48)==0) state=1; else state=2; // Read/Punch
+    } else {
+
+      new_position = ss.getEncoderPosition();
+    
+      if (encoder_position != new_position) {
+        if (new_position==100) new_position=0;
+        if (new_position==-1) new_position=99;
+        ss.setEncoderPosition(new_position); 
+    
+        encoder_position = new_position;
+      }
+
+      matrix.print(encoder_position);   
+      if (digitalRead(48)==0)
+        // matrix.writeDigitRaw(0, B00111000); // L for Load
+        matrix.writeDigitRaw(0, B01010000); // r for Read
+      else matrix.writeDigitRaw(0, B01110011); // P for Punch 
+      matrix.writeDisplay();
+
+      delay(1);
+    } // end not switched to Run
+  } // end state=0
+
+  if (state==1) { // Read
+
+    // Open existing file with a path of 8.3 names.
+    fnamest=String(encoder_position)+".ptp";
+    fnamest.toCharArray(fname, fnamest.length()+1);
+    if (!file.open(fname)) {
+      LEDerr(2); // Error 2, Could not open file for reading
+    } else { // Read file
+      n=1; // Just to get loop started
+      cnt=0; // Byte counter
+      while (digitalRead(49)==1 && (n>0) && (cnt<65535)) { // Run & byteread & not-overrun
+        displayCnt(cnt);
+        while (digitalRead(45)==1) { // wait for not_STOP or Load.
+          if (digitalRead(49)==0) break;
+        } 
+        if (digitalRead(49)==1) { // If still Run
+          n=file.read(buf, 1);
+          if (n>0) {
+            PORTA = buf[0];
+            digitalWrite(47, HIGH); // Pulse SPKT
+            delay(1);
+            digitalWrite(47, LOW);
+            cnt++;
+          }
+          delay(1);
+        }
+      }
+      file.close();
+      if (cnt==65535) LEDerr(3); // Error 3, File too large
+    } // read file
+
+    // Wait for Load
+    while (digitalRead(49)==1);
+    state=0;
+  } // end state=1
+
+  if (state==2) { // Punch
+    displayCnt(0);
+    matrix.writeDigitRaw(0, B01110011); // P for Punch
+    matrix.writeDisplay();
+    
+    // Wait to see if feed hole is coming before deleting old file
+    do { // wait for FEED_HOLE (active low) or Load.
+      digitalWrite(44, HIGH); // Assert SYNC. Data now available for 4.5 msec   
+      delay(1);
+      digitalWrite(44, LOW);
+      if (digitalRead(49)==0) break; // Load
+    } while (digitalRead(43)==1);
+
+    if (digitalRead(49)==1) { // If still Run, write file
+      buf[0] = ((byte)~PINC); // Read and invert first byte
+
+      fnamest=String(encoder_position)+".ptp";
+      fnamest.toCharArray(fname, fnamest.length()+1);
+      SD.remove(fname); // Will error if not exist, that's fine
+      if (!file.open(fname, O_CREAT | O_WRONLY)) {
+        LEDerr(4); // Error 4, Could not open file for writing
+      } else {
+        n=1; // Just to get loop started
+        cnt=0;
+
+        // While run & byteswritten & not-overrun
+        while (digitalRead(49)==1 && (n>0) && (cnt<65535)) {
+          n=file.write(buf, 1);
+          cnt++;
+          displayCnt(cnt);
+          delay(15); // Teletype hi-speed punch has 63.3 bytes/s VAR 15
+          digitalWrite(44, HIGH); // Assert SYNC
+          delay(1);
+          digitalWrite(44, LOW); // Release SYNC
+          do { // wait for FEED_HOLE (active low) or Load.
+            if (digitalRead(49)==0) break; // Load
+          } while (digitalRead(43)==1);
+          buf[0] = ((byte)~PINC); // Read and invert next byte
+        }
+        if (digitalRead(49)==1) {
+          n=file.write(buf, 1); // Write the last byte
+          cnt++;
+          displayCnt(cnt);
+        }
+      }
+      digitalWrite(44, LOW); // Release SYNC
+      file.flush();
+      file.close();  
+      if (cnt==65535) LEDerr(3); // Error 3, File too large
+    } // write file
+
+    // Wait for Load
+    while (digitalRead(49)==1);
+    state=0;
+  } // end state=2
+
+  // don't overwhelm serial port
+  delay(10);
+}

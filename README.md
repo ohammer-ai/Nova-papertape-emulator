@@ -5,26 +5,47 @@ This Arduino-based unit emulates the "high-speed" papertape reader and punch for
 Parts list:
 
 PCB (gerber file)
+
 Front panel (gerber file)
+
 3D-printed bracket for microSD module (STL file)
+
 Arduino Mega 2560 Rev 3. Mouser 782-A000067
+
 Adafruit I2C Stemma QT Rotary Encoder Breakout with Encoder (product code 5880). Mouser 485-5880
+
 Eagle knob. Mouser 450-4667
+
 Adafruit MicroSD card breakout board+ (product code 254). Mouser 485-254
+
 A standard microSD card
+
 Adafruit Assembled 0.56" 4-Digit 7-Segment Display - w/ I2C Backpack STEMMA QT - Red (available in other colors). Mouser 485-5599
+
 Adafruit STEMMA QT / Qwiic JST SH 4-pin to Premium Male Headers Cable - 150mm (code 4209). Mouser 485-4209
+
 Adafruit STEMMA QT / Qwiic JST SH 4-pin Cable - 100mm (code 4210). Mouser 485-4210
+
 2 x simple toggle switches, SPDT, 6 mm hole.
+
 2 x PCB header strips. Mouser 200-HTSW14007LS
+
 4 x 20-pin IDC female connectors. Mouser 571-1658623-4
+
 2 x 20-pin IDC through-hole connector male, angled. Mouser 571-2-5499345-4
+
 5 x Mounting fixings, M3 brass. Mouser 153-IUB-M3-2
+
 4 x 30 mm standoff, M3. Mouser 144-CBMFTS335A
+
 10 x Nylon hex nuts M3. Mouser 534-4688
+
 10 x Nylon screws, M3 x 15 mm. Mouser 144-50M030050H015B
+
 20-way ribbon cable, 2 m
+
 Optional: HCPL-4100-000E Broadcom logic output optocoupler. Mouser 630-HCPL-4100-000E
+
 Optional: 1 nF ceramic capacitor
 
 Vague building instructions:
@@ -45,6 +66,8 @@ Nova wiring:
 Make two ribbon cables, e.g. 1 m long, with 20-pin female IDC connectors at one end. These connectors plug into the emulator. Make sure where pin 1 is (as marked on the PCB).
 At the NOVA end, there now some very tedious wiring to do. I used 15-pin, 3-row male D-sub connectors that plug into female D-subs on the NOVA, and then via ribbon cables to 20-pin female IDC connectors that go into male headers at the bottom of the NOVA backplane.
 I can make detailed wiring instructions if anyone is interested.
+
+20 ma current loop on the  
 
 How to use:
 

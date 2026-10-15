@@ -16,7 +16,7 @@ Arduino Mega 2560 Rev 3. Mouser 782-A000067
 Adafruit I2C Stemma QT Rotary Encoder Breakout with Encoder (product code 5880). Mouser 485-5880
 Eagle knob. Mouser 450-4667
 Adafruit MicroSD card breakout board+ (product code 254). Mouser 485-254
-A standard microSD card
+A standard microSD card, formatted for Fat32
 Adafruit Assembled 0.56" 4-Digit 7-Segment Display - w/ I2C Backpack STEMMA QT - Red (available in other colors). Mouser 485-5599
 Adafruit STEMMA QT / Qwiic JST SH 4-pin to Premium Male Headers Cable - 150mm (code 4209). Mouser 485-4209
 Adafruit STEMMA QT / Qwiic JST SH 4-pin Cable - 100mm (code 4210). Mouser 485-4210
@@ -142,10 +142,25 @@ There is NO WARNING if you overwrite an existing tape.
 
 In Extended BASIC, you can punch the program in binary with the command SAVE "$PTR". Load with LOAD "$PTR".
 
+The punch is intentionally slow to mimic the old punch. In a future version I might add a "turbo" switch.
+
+------------------
+
+Error codes on the LED display:
+
+Err1: Could not open SD card (no card or not correctly formatted)
+Err2: Could not open file for reading (typically because it doesn't exist - e.g. tape 12 needs an existing file "12.ptp")
+Err3: File size overrun (>64 kB, this can happen both during read and punch)
+Err4: Could not open file for writing (this shouldn't really happen)
+
 ------------------
 
 Principles of operation:
 
+Reader:
 
+The Arduino will wait for STOP=low (i.e. NOT STOP) from the 4011, place the first data byte on CH1-CH8, and then assert the SPKT (Sprocket) signal. The 4011 will then read the byte. This continues until end-of-file. The ~RD RDY signal is held low by Arduino software at all times.
 
-The punch is intentionally slow to mimic the old punch. In a future version I might add a "turbo" switch.
+Punch:
+
+The Arduino will repeatedly assert the SYNC pulse for 1 ms, until FEEDHOLE (active low) is received from the 4013. This starts the punching, deleting any existing file on the microSD card. Then, the Arduino will read the first byte from BIT0-BIT7 (inverted logic), and again pulse SYNC, wait for FFEDHOLE, and read and write the next byte. When the transfer has finished and the user has switched to "Load" on the emulator, the file is closed. OUTOFTAPE is hardwired to GND on the emulator.

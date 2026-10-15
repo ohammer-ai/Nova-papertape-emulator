@@ -90,8 +90,48 @@ Nova wiring:
 
 Make two ribbon cables, e.g. 1 m long, with 20-pin female IDC connectors at one end. These connectors plug into the emulator. Note where pin 1 is (as marked on the PCB).
 
-At the NOVA end, there is now some very tedious wiring to do. I used 15-pin, 3-row male D-sub connectors that plug into female D-subs on the NOVA, and then via ribbon cables to 20-pin female IDC connectors that go into male headers at the bottom of the NOVA backplane.
-I can make detailed wiring instructions if anyone is interested.
+At the NOVA end, there is now some very tedious wiring to do. I used 15-pin, 3-row male D-sub connectors that plug into female D-subs on the NOVA. Originally they would have been 19-pin D-subs, but they are now difficult to obtain. Only the first 15 pins are used anyway. Then via ribbon cables to 20-pin female IDC connectors that go into male "AMP" headers at the bottom of the NOVA backplane.
+
+Paper tape reader
+
+The 4011 is factory-connected to the 20-pin header number 2 from the left, out of 4, on bottom of Nova backplane. The original numbering on this "AMP" connector is different from the standard IDC numbering, and goes like this:
+
+ 1  2  3  4  5  6  7  8  9 10
+ 
+11 12 13 14 15 16 17 18 19 20
+
+Emulator to D-sub   Name    Internal ribbon  "AMP"  Slot 3 on backplane
+
+1                   CH1      7               7      A69
+
+2                   CH2      9               6      A67
+
+3                   CH3     11               5      A65
+
+4                   CH4     13               4      A63
+
+5                   CH5     15               3      A61
+
+6                   CH6     17               2      A59
+
+7                   CH7     18              12      A57
+
+8                   CH8     16              13      A49
+
+9                   SPKT    10              16      A77
+
+10                  FWD     14              14      A47
+
+11                  ~RD RDY  8              17      A75
+
+12                  STOP     3               9      A71
+
+13                  FWD&STOP 4              19      A73
+
+14                  GND      1              10      GND
+
+15-20               NC
+
 
 ----------------------
 

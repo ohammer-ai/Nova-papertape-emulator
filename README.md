@@ -68,8 +68,9 @@ At the NOVA end, there is now some very tedious wiring to do. I used 15-pin, 3-r
 
 The 4011 is factory-connected to the 20-pin header number 2 from the left, out of 5, on bottom of Nova backplane. The original numbering on this "AMP" connector is different from the standard IDC numbering, and goes like this:
 
- 1  2  3  4  5  6  7  8  9 10\
-11 12 13 14 15 16 17 18 19 20
+|1|2|3|4|5|6|7|8|9|10|
+|---|---|---|---|---|---|---|---|---|---|
+|11|12|13|14|15|16|17|18|19|20|
 
 We connect wire 1 on the internal ribbon cable to pin 10 on the AMP connector, so wire 2 on the cable is pin 20 on the AMP, wire 3 is pin 9, etc.
 

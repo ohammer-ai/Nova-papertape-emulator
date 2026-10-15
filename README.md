@@ -34,7 +34,7 @@ Solder header strips to PCB on the TOP side (with text like SDA, SCL, 5V, GND, L
 
 Solder male IDC connectors on the BOTTOM side (with the Da-Da logo etc.).
 
-The Qwiic 4-pin to male headers cable is soldered into the SDA, SCL, 5V and GND pins on the PCB (I2C interface), mind the correct color codes, and connect to the LED display.
+The Qwiic 4-pin to male headers cable is soldered into the SDA (blue), SCL (yellow), 5V (red) and GND (black) positions on the top side of PCB (I2C interface), and connect to the LED display.
 
 Continuing from the other connector on the LED display, the 4-pin to 4-pin cable is daisy-chained to the rotary encoder.
 

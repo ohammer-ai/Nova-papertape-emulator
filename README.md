@@ -2,9 +2,9 @@
 
 This Arduino-based unit emulates the "high-speed" papertape reader and punch for Nova computers. It connects to the 4011 and 4013 controllers on the Basic I/O card in the Nova.
 
-<img src="./ptpemul_front.jpg" width="700">
+<img src="./ptpemul_front.jpg" width="600">
 
-<img src="./papertape_pcb.png" width="700">
+<img src="./papertape_pcb.png" width="600">
 
 ## Parts list
 
